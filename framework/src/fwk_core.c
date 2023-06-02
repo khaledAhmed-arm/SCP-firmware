@@ -146,9 +146,37 @@ static int put_event(
         }
     }
     if (intr_state == NOT_INTERRUPT_STATE) {
+#ifndef MARKED_SLIST
         fwk_list_push_tail(&ctx.event_queue, &allocated_event->slist_node);
+#endif
+
+#ifdef MARKED_SLIST
+        fwk_list_push_tail_watch(
+            &ctx.event_queue, &allocated_event->slist_node);
+
+#endif
+
+#ifdef FWK_TRACE_ENABLE
+        FWK_TRACE(
+            "[FWK] event_queue_peak: %d",
+            ctx.event_queue.mark_slist.max_number_of_elements);
+#endif
+
     } else {
+#ifndef MARKED_SLIST
         fwk_list_push_tail(&ctx.isr_event_queue, &allocated_event->slist_node);
+#endif
+
+#ifdef MARKED_SLIST
+        fwk_list_push_tail_watch(
+            &ctx.isr_event_queue, &allocated_event->slist_node);
+#endif
+
+#ifdef FWK_TRACE_ENABLE
+        FWK_TRACE(
+            "[FWK] isr_event_queue_peak: %d",
+            ctx.isr_event_queue.mark_slist.max_number_of_elements);
+#endif
     }
 
 #if FWK_LOG_LEVEL <= FWK_LOG_LEVEL_DEBUG
@@ -180,8 +208,17 @@ static void process_next_event(void)
     int (*process_event)(
         const struct fwk_event *event, struct fwk_event *resp_event);
 
+#ifndef MARKED_SLIST
     ctx.current_event = event = FWK_LIST_GET(
         fwk_list_pop_head(&ctx.event_queue), struct fwk_event, slist_node);
+#endif
+
+#ifdef MARKED_SLIST
+    ctx.current_event = event = FWK_LIST_GET(
+        fwk_list_pop_head_watch(&ctx.event_queue),
+        struct fwk_event,
+        slist_node);
+#endif
 
 #if FWK_LOG_LEVEL <= FWK_LOG_LEVEL_DEBUG
     FWK_LOG_DEBUG(
@@ -246,8 +283,16 @@ static bool process_isr(void)
     unsigned int flags;
 
     flags = fwk_interrupt_global_disable();
+#ifndef MARKED_SLIST
     isr_event = FWK_LIST_GET(
         fwk_list_pop_head(&ctx.isr_event_queue), struct fwk_event, slist_node);
+#endif
+#ifdef MARKED_SLIST
+    isr_event = FWK_LIST_GET(
+        fwk_list_pop_head_watch(&ctx.isr_event_queue),
+        struct fwk_event,
+        slist_node);
+#endif
     (void)fwk_interrupt_global_enable(flags);
 
     if (isr_event == NULL) {
@@ -262,7 +307,19 @@ static bool process_isr(void)
         FWK_ID_STR(isr_event->target_id));
 #endif
 
+#ifndef MARKED_SLIST
     fwk_list_push_tail(&ctx.event_queue, &isr_event->slist_node);
+#endif
+
+#ifdef MARKED_SLIST
+    fwk_list_push_tail_watch(&ctx.event_queue, &isr_event->slist_node);
+#endif
+
+#ifdef FWK_TRACE
+    FWK_TRACE(
+        "[FWK] event_queue_peak: %d",
+        ctx.event_queue.mark_slist.max_number_of_elements);
+#endif
 
     return true;
 }

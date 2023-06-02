@@ -36,6 +36,10 @@ set(SCP_ENABLE_PMI_INIT FALSE)
 
 set(SCP_PLATFORM_VARIANT_INIT "BOARD")
 
+set(SCP_ENABLE_FWK_EVENT_WATERMARK_TRACING_INIT FALSE)
+
+set(SCP_ENABLE_MARKED_SLIST_INIT FALSE)
+
 #
 # If SCP_PLATFORM_VARIANT hasn't been set yet, it will be set to the default
 # value (BOARD)
@@ -124,3 +128,12 @@ elseif (SCP_PLATFORM_VARIANT STREQUAL "FVP")
     list(APPEND SCP_MODULES "mock-clock")
     list(APPEND SCP_MODULES "mock-psu")
 endif()
+
+if(${SCP_ENABLE_FWK_EVENT_WATERMARK_TRACING_INIT})
+     add_compile_definitions(FWK_TRACE_ENABLE)
+endif()
+
+if(${SCP_ENABLE_MARKED_SLIST_INIT})
+     add_compile_definitions(MARKED_SLIST)
+endif()
+

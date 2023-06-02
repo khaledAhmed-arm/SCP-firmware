@@ -1,6 +1,6 @@
 /*
  * Arm SCP/MCP Software
- * Copyright (c) 2015-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2015-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -21,6 +21,11 @@ void __fwk_slist_init(struct fwk_slist *list)
 
     list->head = (struct fwk_slist_node *)list;
     list->tail = (struct fwk_slist_node *)list;
+
+#ifdef MARKED_SLIST
+    list->mark_slist.current_number_of_elements = 0;
+    list->mark_slist.max_number_of_elements = 0;
+#endif
 }
 
 struct fwk_slist_node *__fwk_slist_head(const struct fwk_slist *list)
@@ -79,6 +84,21 @@ void __fwk_slist_push_tail(
     list->tail = new;
 }
 
+#ifdef MARKED_SLIST
+void __fwk_slist_push_tail_watch(
+    struct fwk_slist *list,
+    struct fwk_slist_node *new)
+{
+    __fwk_slist_push_tail(list, new);
+    ++list->mark_slist.current_number_of_elements;
+    if (list->mark_slist.max_number_of_elements <
+        list->mark_slist.current_number_of_elements) {
+        list->mark_slist.max_number_of_elements =
+            list->mark_slist.current_number_of_elements;
+    }
+}
+#endif
+
 struct fwk_slist_node *__fwk_slist_pop_head(struct fwk_slist *list)
 {
     struct fwk_slist_node *popped;
@@ -100,6 +120,18 @@ struct fwk_slist_node *__fwk_slist_pop_head(struct fwk_slist *list)
 
     return popped;
 }
+
+#ifdef MARKED_SLIST
+struct fwk_slist_node *__fwk_slist_pop_head_watch(struct fwk_slist *list)
+{
+    struct fwk_slist_node *popped = __fwk_slist_pop_head(list);
+
+    if (list->mark_slist.current_number_of_elements > 0) {
+        --list->mark_slist.current_number_of_elements;
+    }
+    return popped;
+}
+#endif
 
 struct fwk_slist_node *__fwk_slist_next(
     const struct fwk_slist *list,

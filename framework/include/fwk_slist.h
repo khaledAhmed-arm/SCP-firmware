@@ -1,6 +1,6 @@
 /*
  * Arm SCP/MCP Software
- * Copyright (c) 2015-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2015-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -26,6 +26,20 @@
  */
 
 /*!
+ * \brief add mark service to linked list.
+ *
+ * \internal
+ * \note This structure used in case of needed to mark slist
+ */
+struct fwk_mark_slist {
+    /*! Current numbers of slist elements */
+    int current_number_of_elements;
+
+    /*! Maximum marked elements in slist */
+    int max_number_of_elements;
+};
+
+/*!
  * \brief Singly-linked list.
  *
  * \internal
@@ -37,6 +51,9 @@ struct fwk_slist {
 
     /*! Pointer to the list tail */
     struct fwk_slist_node *tail;
+
+    /*! save the mark for maximum usage of slist */
+    struct fwk_mark_slist mark_slist;
 };
 
 /*!
@@ -98,6 +115,19 @@ void __fwk_slist_push_tail(struct fwk_slist *list, struct fwk_slist_node *new)
     FWK_LEAF FWK_NOTHROW FWK_NONNULL(1) FWK_NONNULL(2) FWK_READ_WRITE1(1)
         FWK_READ_WRITE1(2);
 
+#ifdef MARKED_SLIST
+/*
+ * Add a new node to the end of a singly-linked list .
+ *
+ * For internal use only.
+ * See fwk_list_push_tail(list, new) for the public interface.
+ */
+void __fwk_slist_push_tail_watch(
+    struct fwk_slist *list,
+    struct fwk_slist_node *new) FWK_LEAF FWK_NOTHROW FWK_NONNULL(1)
+    FWK_NONNULL(2) FWK_READ_WRITE1(1) FWK_READ_WRITE1(2);
+#endif
+
 /*
  * Remove and return the head node from a singly-linked list.
  *
@@ -106,6 +136,18 @@ void __fwk_slist_push_tail(struct fwk_slist *list, struct fwk_slist_node *new)
  */
 struct fwk_slist_node *__fwk_slist_pop_head(struct fwk_slist *list) FWK_LEAF
     FWK_NOTHROW FWK_NONNULL(1) FWK_READ_WRITE1(1);
+
+#ifdef MARKED_SLIST
+/*
+ * Remove, update list storage and return the head node
+ * from a singly-linked list.
+ *
+ * For internal use only.
+ * See fwk_list_pop_head(list) for the public interface.
+ */
+struct fwk_slist_node *__fwk_slist_pop_head_watch(struct fwk_slist *list)
+    FWK_LEAF FWK_NOTHROW FWK_NONNULL(1) FWK_READ_WRITE1(1);
+#endif
 
 /*
  * Get the next node from a singly-linked list.

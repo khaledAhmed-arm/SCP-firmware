@@ -1,6 +1,6 @@
 /*
  * Arm SCP/MCP Software
- * Copyright (c) 2015-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2015-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -24,6 +24,20 @@
  */
 
 /*!
+ * \brief add mark service to linked list.
+ *
+ * \internal
+ * \note This structure used in case of needed to mark slist
+ */
+struct fwk_mark_dlist {
+    /*! Current numbers of dlist elements */
+    int current_number_of_elements;
+
+    /*! Maximum marked elements in dlist */
+    int max_number_of_elements;
+};
+
+/*!
  * \brief Doubly-linked list.
  *
  * \internal
@@ -36,6 +50,9 @@ struct fwk_dlist {
 
     /*! Pointer to the list tail */
     struct fwk_dlist_node *tail;
+
+    /*! save the mark for maximum usage of dlist */
+    struct fwk_mark_dlist mark_dlist;
 };
 
 /*!

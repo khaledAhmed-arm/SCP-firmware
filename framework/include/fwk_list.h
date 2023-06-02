@@ -1,6 +1,6 @@
 /*
  * Arm SCP/MCP Software
- * Copyright (c) 2015-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2015-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -116,6 +116,22 @@
         struct fwk_dlist * : __fwk_dlist_push_tail \
     )(list, new)
 
+#ifdef MARKED_SLIST
+/*!
+ * \brief Add a new node to the end of a linked list and update list
+ * number of node element.
+ *
+ * \param list Pointer to the list to add to. Must not be \c NULL.
+ * \param new Pointer to the node to add. Must not be \c NULL. In debug mode,
+ *      the node links must be \c NULL as they are checked to ensure the node is
+ *      not already in use.
+ *
+ * \return None.
+ */
+#    define fwk_list_push_tail_watch(list, new) \
+        __fwk_slist_push_tail_watch(list, new)
+#endif
+
 /*!
  * \brief Remove and return the head node from a linked list.
  *
@@ -131,6 +147,21 @@
         struct fwk_slist * : __fwk_slist_pop_head, \
         struct fwk_dlist * : __fwk_dlist_pop_head \
     )(list)
+
+#ifdef MARKED_SLIST
+/*!
+ * \brief Remove and return the head node from a linked list and update list
+ * number of node element.
+ *
+ * \param list Pointer to the list to remove from. Must not be \c NULL.
+ *
+ * \retval NULL The list was empty.
+ * \return The linked list node that was removed. In debug mode, the node links
+ *      are set to \c NULL to ensure the node no longer references the list it
+ *      has been removed from.
+ */
+#    define fwk_list_pop_head_watch(list) __fwk_slist_pop_head_watch(list)
+#endif
 
 /*!
  * \brief Get the next node of a linked list.
